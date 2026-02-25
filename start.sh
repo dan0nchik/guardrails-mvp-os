@@ -2,8 +2,8 @@
 set -e
 
 PROFILES=""
-ENV_OVERRIDES=""
 API_PORT="${API_PORT:-8002}"
+export API_PORT
 
 echo "=== Проверка окружения ==="
 echo ""
@@ -19,7 +19,7 @@ echo "[✓] Порт ${API_PORT} свободен для API"
 # Проверяем слушает ли Redis на 0.0.0.0 (доступен из Docker) или только на 127.0.0.1
 if ss -tlnp 2>/dev/null | grep ':6379 ' | grep -q '0.0.0.0'; then
     echo "[✓] Redis на 0.0.0.0:6379 — доступен из Docker"
-    ENV_OVERRIDES="$ENV_OVERRIDES REDIS_URL=redis://host.docker.internal:6379/0"
+    export REDIS_URL="redis://host.docker.internal:6379/0"
 elif ss -tlnp 2>/dev/null | grep -q ':6379 '; then
     echo "[!] Redis на 127.0.0.1:6379 — из Docker недоступен, подниму отдельный на :6380"
     PROFILES="$PROFILES --profile redis"
@@ -31,7 +31,7 @@ fi
 # --- Проверка PostgreSQL ---
 if ss -tlnp 2>/dev/null | grep ':5432 ' | grep -q '0.0.0.0'; then
     echo "[✓] PostgreSQL на 0.0.0.0:5432 — доступен из Docker"
-    ENV_OVERRIDES="$ENV_OVERRIDES DATABASE_URL=postgresql+asyncpg://guardrails:password@host.docker.internal:5432/guardrails_mvp"
+    export DATABASE_URL="postgresql+asyncpg://guardrails:password@host.docker.internal:5432/guardrails_mvp"
 
     # Создаём базу и юзера если их нет
     PG_CONTAINER=$(docker ps --format '{{.Names}}' | grep -i postgres | head -1)
@@ -73,7 +73,7 @@ fi
 echo ""
 echo "=== Запуск docker-compose (API на порту ${API_PORT}) ==="
 # shellcheck disable=SC2086
-env API_PORT="$API_PORT" $ENV_OVERRIDES docker compose $PROFILES up -d --build
+docker compose $PROFILES up -d --build
 
 echo ""
 echo "=== Готово ==="
