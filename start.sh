@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -e
+
+PROFILES=""
+ENV_OVERRIDES=""
+API_PORT="${API_PORT:-8002}"
+
+echo "=== Проверка окружения ==="
+echo ""
+
+# --- Проверка порта API ---
+if ss -tlnp 2>/dev/null | grep -q ":${API_PORT} "; then
+    echo "[!] Порт ${API_PORT} занят. Укажи другой: API_PORT=8003 ./start.sh"
+    exit 1
+fi
+echo "[✓] Порт ${API_PORT} свободен для API"
+
+# --- Проверка Redis ---
+# Проверяем слушает ли Redis на 0.0.0.0 (доступен из Docker) или только на 127.0.0.1
+if ss -tlnp 2>/dev/null | grep ':6379 ' | grep -q '0.0.0.0'; then
+    echo "[✓] Redis на 0.0.0.0:6379 — доступен из Docker"
+    ENV_OVERRIDES="$ENV_OVERRIDES REDIS_URL=redis://host.docker.internal:6379/0"
+elif ss -tlnp 2>/dev/null | grep -q ':6379 '; then
+    echo "[!] Redis на 127.0.0.1:6379 — из Docker недоступен, подниму отдельный на :6380"
+    PROFILES="$PROFILES --profile redis"
+else
+    echo "[+] Redis не найден — подниму в Docker"
+    PROFILES="$PROFILES --profile redis"
+fi
+
+# --- Проверка PostgreSQL ---
+if ss -tlnp 2>/dev/null | grep ':5432 ' | grep -q '0.0.0.0'; then
+    echo "[✓] PostgreSQL на 0.0.0.0:5432 — доступен из Docker"
+    ENV_OVERRIDES="$ENV_OVERRIDES DATABASE_URL=postgresql+asyncpg://guardrails:password@host.docker.internal:5432/guardrails_mvp"
+
+    # Создаём базу и юзера если их нет
+    PG_CONTAINER=$(docker ps --format '{{.Names}}' | grep -i postgres | head -1)
+    if [ -n "$PG_CONTAINER" ]; then
+        echo "    Проверяю базу guardrails_mvp в контейнере ${PG_CONTAINER}..."
+        if docker exec "$PG_CONTAINER" psql -U postgres -lqt 2>/dev/null | grep -qw guardrails_mvp; then
+            echo "    [✓] База guardrails_mvp существует"
+        else
+            echo "    [+] Создаю пользователя и базу..."
+            docker exec "$PG_CONTAINER" psql -U postgres -c "
+                DO \$\$
+                BEGIN
+                    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'guardrails') THEN
+                        CREATE ROLE guardrails WITH LOGIN PASSWORD 'password';
+                    END IF;
+                END
+                \$\$;
+            " 2>/dev/null
+            docker exec "$PG_CONTAINER" psql -U postgres -c "CREATE DATABASE guardrails_mvp OWNER guardrails;" 2>/dev/null \
+                && echo "    [✓] База создана" \
+                || echo "    [!] Не удалось создать базу — проверь доступ"
+        fi
+    else
+        echo "    [!] Postgres-контейнер не найден, базу создай вручную"
+    fi
+else
+    echo "[+] PostgreSQL не найден — подниму в Docker"
+    PROFILES="$PROFILES --profile postgres"
+fi
+
+echo ""
+echo "=== Запуск docker-compose (API на порту ${API_PORT}) ==="
+# shellcheck disable=SC2086
+env API_PORT="$API_PORT" $ENV_OVERRIDES docker compose $PROFILES up -d --build
+
+echo ""
+echo "=== Готово ==="
+docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+echo ""
+echo "API: http://localhost:${API_PORT}"

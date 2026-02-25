@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Main API service
   api:
@@ -7,30 +5,32 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8002}:8000"
       - "9090:9090"  # Prometheus metrics
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - ENV=development
       - DEBUG=true
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://guardrails:password@postgres:5432/guardrails_mvp
-    depends_on:
-      - redis
-      - postgres
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://guardrails:password@postgres:5432/guardrails_mvp}
+    depends_on: []
     volumes:
       - ./app:/app/app
       - ./guardrails:/app/guardrails
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # Redis for sessions
+  # Redis for sessions (порт 6380 чтобы не конфликтовать с хостовым)
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
+    profiles:
+      - redis
 
   # Postgres for audit logs
   postgres:
@@ -43,6 +43,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    profiles:
+      - postgres
 
 volumes:
   redis_data:
