@@ -2,30 +2,30 @@
 set -e
 
 PROFILES=""
-API_PORT="${API_PORT:-8002}"
-export API_PORT
+UI_PORT="${UI_PORT:-3001}"
+export UI_PORT
 
 echo "=== Проверка окружения ==="
 echo ""
 
-# --- Проверка порта API ---
-if ss -tlnp 2>/dev/null | grep -q ":${API_PORT} "; then
-    echo "[!] Порт ${API_PORT} занят. Укажи другой: API_PORT=8003 ./start.sh"
+# --- Проверка порта UI ---
+if ss -tlnp 2>/dev/null | grep -q ":${UI_PORT} "; then
+    echo "[!] Порт ${UI_PORT} занят. Укажи другой: UI_PORT=3002 ./start.sh"
     exit 1
 fi
-echo "[✓] Порт ${API_PORT} свободен для API"
+echo "[✓] Порт ${UI_PORT} свободен для UI"
 
 # --- Проверка Redis ---
-# Проверяем listen-адрес: 0.0.0.0:6379 доступен из Docker, 127.0.0.1:6379 — нет
 REDIS_LISTEN=$(ss -tlnp 2>/dev/null | grep ':6379 ' | awk '{print $4}' | head -1)
 if echo "$REDIS_LISTEN" | grep -q '^0.0.0.0:'; then
     echo "[✓] Redis на 0.0.0.0:6379 — доступен из Docker"
     export REDIS_URL="redis://host.docker.internal:6379/0"
 elif [ -n "$REDIS_LISTEN" ]; then
-    echo "[!] Redis на ${REDIS_LISTEN} — из Docker недоступен, подниму отдельный на :6380"
+    echo "[!] Redis на ${REDIS_LISTEN} — из Docker недоступен, подниму в Docker на :6380"
     PROFILES="$PROFILES --profile redis"
+    # Внутри docker-сети Redis доступен как redis:6379 (дефолт в compose)
 else
-    echo "[+] Redis не найден — подниму в Docker"
+    echo "[+] Redis не найден — подниму в Docker на :6380"
     PROFILES="$PROFILES --profile redis"
 fi
 
@@ -38,7 +38,6 @@ if echo "$PG_LISTEN" | grep -q '^0.0.0.0:'; then
     # Создаём базу и юзера если их нет
     PG_CONTAINER=$(docker ps --format '{{.Names}}' | grep -i postgres | head -1)
     if [ -n "$PG_CONTAINER" ]; then
-        # Определяем суперюзера из env контейнера
         PG_ENV=$(docker inspect "$PG_CONTAINER" --format '{{range .Config.Env}}{{println .}}{{end}}')
         PG_USER=$(echo "$PG_ENV" | grep POSTGRES_USER | cut -d= -f2)
         PG_USER="${PG_USER:-postgres}"
@@ -73,7 +72,7 @@ else
 fi
 
 echo ""
-echo "=== Запуск docker-compose (API на порту ${API_PORT}) ==="
+echo "=== Запуск ==="
 
 # Определяем команду: docker compose (v2) или docker-compose (v1)
 if docker compose version &>/dev/null; then
@@ -92,4 +91,6 @@ echo ""
 echo "=== Готово ==="
 $DC ps
 echo ""
-echo "API: http://localhost:${API_PORT}"
+echo "UI:      http://localhost:${UI_PORT}"
+echo "API:     http://localhost:${UI_PORT}/api/health"
+echo "Metrics: http://localhost:9090/metrics"

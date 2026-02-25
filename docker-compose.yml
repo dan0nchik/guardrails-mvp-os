@@ -5,7 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${API_PORT:-8002}:8000"
       - "9090:9090"  # Prometheus metrics
     env_file:
       - .env
@@ -16,13 +15,22 @@ services:
       - DEBUG=true
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://guardrails:password@postgres:5432/guardrails_mvp}
-    depends_on: []
     volumes:
       - ./app:/app/app
       - ./guardrails:/app/guardrails
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # Redis for sessions (порт 6380 чтобы не конфликтовать с хостовым)
+  # Frontend (Nginx + React build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "${UI_PORT:-3001}:80"
+    depends_on:
+      - api
+
+  # Redis for sessions
   redis:
     image: redis:7-alpine
     ports:
