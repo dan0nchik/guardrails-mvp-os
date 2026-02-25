@@ -16,12 +16,13 @@ fi
 echo "[✓] Порт ${API_PORT} свободен для API"
 
 # --- Проверка Redis ---
-# Проверяем слушает ли Redis на 0.0.0.0 (доступен из Docker) или только на 127.0.0.1
-if ss -tlnp 2>/dev/null | grep ':6379 ' | grep -q '0.0.0.0'; then
+# Проверяем listen-адрес: 0.0.0.0:6379 доступен из Docker, 127.0.0.1:6379 — нет
+REDIS_LISTEN=$(ss -tlnp 2>/dev/null | grep ':6379 ' | awk '{print $4}' | head -1)
+if echo "$REDIS_LISTEN" | grep -q '^0.0.0.0:'; then
     echo "[✓] Redis на 0.0.0.0:6379 — доступен из Docker"
     export REDIS_URL="redis://host.docker.internal:6379/0"
-elif ss -tlnp 2>/dev/null | grep -q ':6379 '; then
-    echo "[!] Redis на 127.0.0.1:6379 — из Docker недоступен, подниму отдельный на :6380"
+elif [ -n "$REDIS_LISTEN" ]; then
+    echo "[!] Redis на ${REDIS_LISTEN} — из Docker недоступен, подниму отдельный на :6380"
     PROFILES="$PROFILES --profile redis"
 else
     echo "[+] Redis не найден — подниму в Docker"
@@ -29,7 +30,8 @@ else
 fi
 
 # --- Проверка PostgreSQL ---
-if ss -tlnp 2>/dev/null | grep ':5432 ' | grep -q '0.0.0.0'; then
+PG_LISTEN=$(ss -tlnp 2>/dev/null | grep ':5432 ' | awk '{print $4}' | head -1)
+if echo "$PG_LISTEN" | grep -q '^0.0.0.0:'; then
     echo "[✓] PostgreSQL на 0.0.0.0:5432 — доступен из Docker"
     export DATABASE_URL="postgresql+asyncpg://guardrails:password@host.docker.internal:5432/guardrails_mvp"
 
