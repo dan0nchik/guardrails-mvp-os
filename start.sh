@@ -36,12 +36,17 @@ if ss -tlnp 2>/dev/null | grep ':5432 ' | grep -q '0.0.0.0'; then
     # Создаём базу и юзера если их нет
     PG_CONTAINER=$(docker ps --format '{{.Names}}' | grep -i postgres | head -1)
     if [ -n "$PG_CONTAINER" ]; then
-        echo "    Проверяю базу guardrails_mvp в контейнере ${PG_CONTAINER}..."
-        if docker exec "$PG_CONTAINER" psql -U postgres -lqt 2>/dev/null | grep -qw guardrails_mvp; then
+        # Определяем суперюзера из env контейнера
+        PG_USER=$(docker inspect "$PG_CONTAINER" --format '{{range .Config.Env}}{{println .}}{{end}}' | grep POSTGRES_USER | cut -d= -f2)
+        PG_USER="${PG_USER:-postgres}"
+
+        echo "    Контейнер: ${PG_CONTAINER}, суперюзер: ${PG_USER}"
+        echo "    Проверяю базу guardrails_mvp..."
+        if docker exec "$PG_CONTAINER" psql -U "$PG_USER" -lqt 2>/dev/null | grep -qw guardrails_mvp; then
             echo "    [✓] База guardrails_mvp существует"
         else
             echo "    [+] Создаю пользователя и базу..."
-            docker exec "$PG_CONTAINER" psql -U postgres -c "
+            docker exec "$PG_CONTAINER" psql -U "$PG_USER" -c "
                 DO \$\$
                 BEGIN
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'guardrails') THEN
@@ -50,7 +55,7 @@ if ss -tlnp 2>/dev/null | grep ':5432 ' | grep -q '0.0.0.0'; then
                 END
                 \$\$;
             " 2>/dev/null
-            docker exec "$PG_CONTAINER" psql -U postgres -c "CREATE DATABASE guardrails_mvp OWNER guardrails;" 2>/dev/null \
+            docker exec "$PG_CONTAINER" psql -U "$PG_USER" -c "CREATE DATABASE guardrails_mvp OWNER guardrails;" 2>/dev/null \
                 && echo "    [✓] База создана" \
                 || echo "    [!] Не удалось создать базу — проверь доступ"
         fi
