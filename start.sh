@@ -2,7 +2,7 @@
 set -e
 
 PROFILES=""
-UI_PORT="${UI_PORT:-3001}"
+UI_PORT="${UI_PORT:-8002}"
 export UI_PORT
 
 echo "=== Проверка окружения ==="
