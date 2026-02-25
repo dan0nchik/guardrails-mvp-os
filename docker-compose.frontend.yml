@@ -1,0 +1,71 @@
+version: '3.8'
+
+# Full stack setup: Backend + Frontend
+
+services:
+  # Backend API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+      - "9090:9090"
+    env_file:
+      - .env
+    environment:
+      - ENV=development
+      - DEBUG=true
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://guardrails:password@postgres:5432/guardrails_mvp
+    volumes:
+      - ./agent_workspace:/app/agent_workspace
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - guardrails-network
+
+  # Frontend (Nginx serving built files)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - guardrails-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - guardrails-network
+
+  # Postgres
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: guardrails
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: guardrails_mvp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - guardrails-network
+
+networks:
+  guardrails-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:

@@ -1,0 +1,17 @@
+define user express greeting
+  "hello"
+  "hi"
+  "hey"
+  "привет"
+  "здравствуй"
+
+define bot express greeting
+  "Привет! Чем могу помочь?"
+
+define flow greeting
+  user express greeting
+  bot express greeting
+
+define flow main
+  user ...
+  bot respond
