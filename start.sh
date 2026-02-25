@@ -72,11 +72,22 @@ fi
 
 echo ""
 echo "=== Запуск docker-compose (API на порту ${API_PORT}) ==="
+
+# Определяем команду: docker compose (v2) или docker-compose (v1)
+if docker compose version &>/dev/null; then
+    DC="docker compose"
+elif docker-compose version &>/dev/null; then
+    DC="docker-compose"
+else
+    echo "[!] docker compose не найден"
+    exit 1
+fi
+
 # shellcheck disable=SC2086
-docker compose $PROFILES up -d --build
+$DC $PROFILES up -d --build
 
 echo ""
 echo "=== Готово ==="
-docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+$DC ps
 echo ""
 echo "API: http://localhost:${API_PORT}"
