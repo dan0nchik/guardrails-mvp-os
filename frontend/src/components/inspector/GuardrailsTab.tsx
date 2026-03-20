@@ -22,8 +22,12 @@ export function GuardrailsTab({ message }: GuardrailsTabProps) {
     );
   }
 
-  const activeRails = Object.entries(config.toggles).filter(([_, enabled]) => enabled);
-  const inactiveRails = Object.entries(config.toggles).filter(([_, enabled]) => !enabled);
+  const activeRails = config.enabled
+    ? Object.entries(config.toggles).filter(([_, enabled]) => enabled)
+    : [];
+  const inactiveRails = config.enabled
+    ? Object.entries(config.toggles).filter(([_, enabled]) => !enabled)
+    : Object.entries(config.toggles);
 
   return (
     <Stack gap="md">

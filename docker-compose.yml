@@ -19,6 +19,7 @@ services:
     volumes:
       - ./app:/app/app
       - ./guardrails:/app/guardrails
+      - ./minzdrav_dataset:/app/agent_workspace/minzdrav_dataset
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # Frontend (Nginx + React build)
@@ -40,8 +41,6 @@ services:
       - "6380:6379"
     volumes:
       - redis_data:/data
-    profiles:
-      - redis
 
   # Postgres for audit logs
   postgres:
