@@ -75,15 +75,15 @@ export function ChatView() {
           user_message: content,
           agent_profile: 'default',
           history,
-          guardrails: config.enabled
-            ? {
-                enabled: true,
-                monitor_only: config.monitorOnly,
-                toggles: Object.fromEntries(
+          guardrails: {
+            enabled: config.enabled,
+            monitor_only: config.monitorOnly,
+            toggles: config.enabled
+              ? Object.fromEntries(
                   Object.entries(config.toggles).map(([k, v]) => [k, v])
-                ),
-              }
-            : undefined,
+                )
+              : {},
+          },
         },
         abortControllerRef.current.signal
       );
