@@ -228,8 +228,9 @@ async def chat(request: ChatRequest, req: Request):
 
         # Get guardrails config from request or use defaults
         guardrails_config = request.guardrails
-        pii_enabled = guardrails_config.toggles.get('input.pii', True) if guardrails_config else True
-        safety_enabled = guardrails_config.toggles.get('output.safety', True) if guardrails_config else True
+        guardrails_enabled = guardrails_config.enabled if guardrails_config else True
+        pii_enabled = guardrails_enabled and (guardrails_config.toggles.get('input.pii', True) if guardrails_config else True)
+        safety_enabled = guardrails_enabled and (guardrails_config.toggles.get('output.safety', True) if guardrails_config else True)
         monitor_only = guardrails_config.monitor_only if guardrails_config else False
 
         # Build history
@@ -242,67 +243,72 @@ async def chat(request: ChatRequest, req: Request):
         session_state = await session_store.get_session(request.session_id)
 
         # Parallel step: PII/safety checks + dynamic rails generation
-        rail_generator: RailGenerator = req.app.state.rail_generator
+        input_events = []
+        input_blocked = False
+        generated = None
 
-        async def run_pii_safety():
-            """Run PII and safety checks."""
-            events = []
+        if guardrails_enabled:
+            rail_generator: RailGenerator = req.app.state.rail_generator
 
-            if pii_enabled:
-                pii_detector: PIIDetector = req.app.state.pii_detector
-                pii_detections = pii_detector.detect(request.user_message)
-                if pii_detections:
-                    severity = 'warn' if monitor_only else 'block'
-                    for detection in pii_detections:
-                        events.append(RailEvent(
-                            railName='input.pii',
-                            stage='input',
-                            severity=severity,
-                            reason=detection['description'],
-                            details={
-                                'pii_type': detection['type'],
-                                'snippet': detection['snippet'][:20] + '...' if len(detection['snippet']) > 20 else detection['snippet']
-                            }
-                        ))
-                    if not monitor_only:
-                        return events, True  # blocked
+            async def run_pii_safety():
+                """Run PII and safety checks."""
+                events = []
 
-            if safety_enabled:
-                safety_detector: SafetyDetector = req.app.state.safety_detector
-                safety_check = safety_detector.check_input(request.user_message)
-                if not safety_check['safe']:
-                    severity = 'warn' if monitor_only else 'block'
-                    for detection in safety_check['detections']:
-                        events.append(RailEvent(
-                            railName='input.safety',
-                            stage='input',
-                            severity=severity,
-                            reason=detection['description'],
-                            details={
-                                'category': detection['category'],
-                                'snippet': detection['snippet']
-                            }
-                        ))
-                    if not monitor_only and safety_check['should_block']:
-                        return events, True  # blocked
+                if pii_enabled:
+                    pii_detector: PIIDetector = req.app.state.pii_detector
+                    pii_detections = pii_detector.detect(request.user_message)
+                    if pii_detections:
+                        severity = 'warn' if monitor_only else 'block'
+                        for detection in pii_detections:
+                            events.append(RailEvent(
+                                railName='input.pii',
+                                stage='input',
+                                severity=severity,
+                                reason=detection['description'],
+                                details={
+                                    'pii_type': detection['type'],
+                                    'snippet': detection['snippet'][:20] + '...' if len(detection['snippet']) > 20 else detection['snippet']
+                                }
+                            ))
+                        if not monitor_only:
+                            return events, True  # blocked
 
-            return events, False
+                if safety_enabled:
+                    safety_detector: SafetyDetector = req.app.state.safety_detector
+                    safety_check = safety_detector.check_input(request.user_message)
+                    if not safety_check['safe']:
+                        severity = 'warn' if monitor_only else 'block'
+                        for detection in safety_check['detections']:
+                            events.append(RailEvent(
+                                railName='input.safety',
+                                stage='input',
+                                severity=severity,
+                                reason=detection['description'],
+                                details={
+                                    'category': detection['category'],
+                                    'snippet': detection['snippet']
+                                }
+                            ))
+                        if not monitor_only and safety_check['should_block']:
+                            return events, True  # blocked
 
-        async def run_dynamic_rails():
-            """Generate dynamic rails."""
-            return await rail_generator.generate(
-                user_message=request.user_message,
-                session_state=session_state,
-                history=history,
+                return events, False
+
+            async def run_dynamic_rails():
+                """Generate dynamic rails."""
+                return await rail_generator.generate(
+                    user_message=request.user_message,
+                    session_state=session_state,
+                    history=history,
+                )
+
+            # Run in parallel
+            pii_safety_task = asyncio.create_task(run_pii_safety())
+            rails_task = asyncio.create_task(run_dynamic_rails())
+
+            (input_events, input_blocked), generated = await asyncio.gather(
+                pii_safety_task, rails_task
             )
-
-        # Run in parallel
-        pii_safety_task = asyncio.create_task(run_pii_safety())
-        rails_task = asyncio.create_task(run_dynamic_rails())
-
-        (input_events, input_blocked), generated = await asyncio.gather(
-            pii_safety_task, rails_task
-        )
 
         rail_events.extend(input_events)
 
@@ -387,13 +393,23 @@ async def chat(request: ChatRequest, req: Request):
         # Run through guardrails runtime (agent + backend guardrails)
         guardrails: GuardrailsRuntime = req.app.state.guardrails
 
-        result = await guardrails.generate(
-            user_message=request.user_message,
-            session_state=session_state,
-            agent_profile=request.agent_profile,
-            trace_id=trace_id,
-            history=history,
-        )
+        if guardrails_enabled:
+            result = await guardrails.generate(
+                user_message=request.user_message,
+                session_state=session_state,
+                agent_profile=request.agent_profile,
+                trace_id=trace_id,
+                history=history,
+            )
+        else:
+            # Guardrails disabled — call LLM directly without any checks
+            result = await guardrails.generate_passthrough(
+                user_message=request.user_message,
+                session_state=session_state,
+                agent_profile=request.agent_profile,
+                trace_id=trace_id,
+                history=history,
+            )
 
         # Check output safety if enabled
         assistant_message = result['message']

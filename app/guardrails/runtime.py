@@ -236,3 +236,52 @@ class GuardrailsRuntime:
                 'session_state': session_state,
                 'dynamic_rules_result': None,
             }
+
+    async def generate_passthrough(
+        self,
+        user_message: str,
+        session_state: Dict[str, Any],
+        agent_profile: str,
+        trace_id: str,
+        history: Optional[list] = None,
+    ) -> Dict[str, Any]:
+        """
+        Generate response WITHOUT guardrails — direct LLM call.
+        Used when guardrails are globally disabled.
+        """
+        start_time = time.time()
+        session_id = session_state.get('session_id', trace_id)
+
+        logger.info("Passthrough generate (guardrails disabled)", trace_id=trace_id)
+
+        try:
+            result = await self.agent_runtime.run(
+                user_message=user_message,
+                session_id=session_id,
+                trace_id=trace_id,
+                context=session_state,
+                history=history,
+            )
+
+            tool_calls = self.tool_proxy.get_tool_call_ids(session_id, trace_id)
+            duration = time.time() - start_time
+
+            logger.info("Passthrough generate completed", trace_id=trace_id, duration=duration)
+
+            return {
+                'message': result['message'],
+                'status': 'ok' if result['status'] == 'success' else 'escalated',
+                'tool_calls': tool_calls,
+                'session_state': session_state,
+                'dynamic_rules_result': None,
+            }
+
+        except Exception as e:
+            logger.error("Passthrough generate failed", exc_info=e, trace_id=trace_id)
+            return {
+                'message': "Извините, произошла ошибка при обработке вашего запроса.",
+                'status': 'escalated',
+                'tool_calls': [],
+                'session_state': session_state,
+                'dynamic_rules_result': None,
+            }
