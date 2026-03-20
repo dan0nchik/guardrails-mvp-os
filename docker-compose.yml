@@ -1,6 +1,7 @@
 services:
   # Main API service
   api:
+    restart: always
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,6 +23,7 @@ services:
 
   # Frontend (Nginx + React build)
   frontend:
+    restart: always
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
@@ -32,6 +34,7 @@ services:
 
   # Redis for sessions
   redis:
+    restart: always
     image: redis:7-alpine
     ports:
       - "6380:6379"
@@ -42,6 +45,7 @@ services:
 
   # Postgres for audit logs
   postgres:
+    restart: always
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: guardrails
