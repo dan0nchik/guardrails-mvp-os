@@ -104,6 +104,30 @@ class Metrics:
             'Number of active sessions'
         )
 
+        # Grounding
+        self.grounding_claims_total = Counter(
+            'guardrails_grounding_claims_total',
+            'Total claims processed by grounding pipeline',
+            ['verdict']
+        )
+
+        self.grounding_pipeline_duration = Histogram(
+            'guardrails_grounding_pipeline_duration_seconds',
+            'Grounding pipeline duration',
+            buckets=[0.5, 1.0, 2.0, 3.0, 5.0, 10.0]
+        )
+
+        self.grounding_nli_calls_total = Counter(
+            'guardrails_grounding_nli_calls_total',
+            'Total NLI verification calls',
+            ['status']
+        )
+
+        self.grounding_responses_modified = Counter(
+            'guardrails_grounding_responses_modified_total',
+            'Responses modified by grounding pipeline'
+        )
+
 
 # Global metrics instance
 metrics = Metrics()

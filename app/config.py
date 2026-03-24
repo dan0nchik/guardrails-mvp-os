@@ -65,6 +65,17 @@ class Settings(BaseSettings):
     metrics_enabled: bool = True
     prometheus_port: int = 9090
 
+    # Grounding (Factual Grounding Layer)
+    grounding_enabled: bool = False
+    grounding_model: str = ''  # Empty = use main llm_model
+    grounding_mode: Literal['enforce', 'monitor', 'strict'] = 'monitor'
+    grounding_embedding_model: str = 'text-embedding-3-small'
+    grounding_chroma_persist_dir: str = './chroma_db'
+    grounding_dataset_path: str = './minzdrav_dataset'
+    grounding_nli_threshold: float = 0.7
+    grounding_relevance_threshold: float = 0.3
+    grounding_max_claims: int = 20
+
     # HTTP/HTTPS Proxy (optional)
     http_proxy: str = ''
     https_proxy: str = ''

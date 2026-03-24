@@ -1,0 +1,598 @@
+\documentclass[aspectratio=169, 12pt]{beamer}
+
+% ─── Encoding & fonts ───
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, fit}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{xcolor}
+
+% ─── Theme ───
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+\definecolor{hseblue}{RGB}{0, 56, 130}
+\definecolor{hsered}{RGB}{180, 30, 40}
+\definecolor{hsegreen}{RGB}{34, 139, 34}
+\definecolor{lightgray}{RGB}{240, 240, 240}
+\definecolor{warnred}{RGB}{220, 50, 50}
+\definecolor{okgreen}{RGB}{40, 160, 60}
+\definecolor{fglblue}{RGB}{30, 100, 200}
+
+\setbeamercolor{structure}{fg=hseblue}
+\setbeamercolor{title}{fg=white, bg=hseblue}
+\setbeamercolor{frametitle}{fg=white, bg=hseblue}
+\setbeamercolor{block title}{fg=white, bg=hseblue}
+\setbeamercolor{block body}{bg=lightgray}
+
+\setbeamerfont{title}{series=\bfseries, size=\large}
+\setbeamerfont{frametitle}{series=\bfseries}
+
+% Remove navigation symbols
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+% ─── Metadata ───
+\title{Разработка программного фреймворка для контроля работы саморазвивающихся ИИ-агентов}
+\subtitle{Factual Grounding Layer Framework}
+\author{Хромов Даниил}
+\institute{ФКН НИУ ВШЭ}
+\date{2026}
+
+% ═══════════════════════════════════════════════════════════════
+\begin{document}
+
+% ─── Title Slide ───
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+% ─── Outline ───
+\begin{frame}{Содержание}
+  \tableofcontents
+\end{frame}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Суть проекта}
+% ═══════════════════════════════════════════════════════════════
+
+\begin{frame}{Проблема}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \textbf{ИИ-агенты активно внедряются}, но:
+      \begin{itemize}
+        \item Генерируют \textcolor{warnred}{неподтверждённые утверждения} (галлюцинации)
+        \item Некорректно используют \textcolor{warnred}{инструменты} (tool calls)
+        \item Саморазвивающиеся агенты \textcolor{warnred}{дрейфуют} от исходных политик
+        \item Нет единого механизма \textcolor{warnred}{верификации} фактов в runtime
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{Factual Grounding --- открытая проблема}
+        Из 40+ guardrails-систем только \textbf{1} (NeMo Guardrails) имеет RAG grounding из коробки. Ни одна не реализует \textbf{claim-level verification loop}.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Цель работы}
+  \begin{block}{Основная цель}
+    Разработка и экспериментальное тестирование программного фреймворка для \textbf{автоматического построения слоя фактического контроля} (Factual Grounding Layer) для ИИ-агентов.
+  \end{block}
+  \vspace{0.3cm}
+  \textbf{Ключевые задачи:}
+  \begin{enumerate}
+    \item Claim-level factual reasoning loop в runtime
+    \item Source-grounding, tool-grounding, trace-grounding
+    \item Автоматическая генерация доменных правил контроля
+    \item Benchmark для саморазвивающихся ИИ-агентов
+    \item Model-agnostic подход (GigaChat, GPT-4o, DeepSeek R1)
+  \end{enumerate}
+\end{frame}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Математическая модель}
+% ═══════════════════════════════════════════════════════════════
+
+% --- Слайд 5: формулы уменьшены, чтобы не обрезались ---
+\begin{frame}{Формализация: Claim-Level Verification}
+  \small
+  Пусть $r$ --- ответ агента. Определим:
+  \vspace{-0.1cm}
+  \begin{align}
+    \mathcal{C}(r) &= \{c_1, \ldots, c_n\} && \text{--- атомарные утверждения} \\[2pt]
+    \mathcal{S} &= \{s_1, \ldots, s_m\} && \text{--- допустимые источники}
+  \end{align}
+  \vspace{-0.3cm}
+
+  Evidence binding для claim $c_i$:
+  \vspace{-0.1cm}
+  \[
+    \mathcal{E}(c_i) = \arg\max_{s_j \in \mathcal{S}} \operatorname{sim}\bigl(\operatorname{emb}(c_i),\, \operatorname{emb}(s_j)\bigr)
+  \]
+  \vspace{-0.3cm}
+
+  NLI-верификация:
+  \vspace{-0.1cm}
+  \[
+    v(c_i) = \operatorname{NLI}(c_i, \mathcal{E}(c_i)) \in \{\texttt{SUPPORTS},\, \texttt{REFUTES},\, \texttt{NEI}\}
+  \]
+  \vspace{-0.3cm}
+
+  \textbf{Claim-Level Precision} (FActScore):
+  \[
+    \boxed{\;\operatorname{CLP}(r) = \frac{\bigl|\{c_i \in \mathcal{C}(r) : v(c_i) = \texttt{SUPPORTS}\}\bigr|}{|\mathcal{C}(r)|}\;}
+  \]
+\end{frame}
+
+% --- Слайд 6: без изменений ---
+\begin{frame}{Формализация: Семантическая энтропия}
+  \small
+  Для обнаружения галлюцинаций: \textbf{Semantic Entropy} (Farquhar et al., Nature 2024).
+
+  \vspace{0.15cm}
+  Генерируем $K$ ответов $\{r^{(1)}, \ldots, r^{(K)}\}$ на вопрос $q$. Кластеризуем по семантической эквивалентности:
+  \[
+    r^{(i)} \sim r^{(j)} \iff \operatorname{NLI}(r^{(i)}, r^{(j)}) {=} \texttt{ENTAIL} \;\wedge\; \operatorname{NLI}(r^{(j)}, r^{(i)}) {=} \texttt{ENTAIL}
+  \]
+
+  Кластеры $\{G_1, \ldots, G_L\}$, энтропия:
+  \[
+    \boxed{\;SE(q) = -\sum_{l=1}^{L} p(G_l) \log p(G_l), \quad p(G_l) = \frac{|G_l|}{K}\;}
+  \]
+
+  \begin{block}{Интерпретация}
+    Высокая $SE(q)$ $\Rightarrow$ модель \textcolor{warnred}{неуверена} $\Rightarrow$ высокая вероятность галлюцинации. \\
+    AUROC: насколько хорошо $SE$ отделяет корректные ответы от галлюцинаций.
+  \end{block}
+\end{frame}
+
+% --- Слайд 7: компактнее ---
+\begin{frame}{Метрика дрейфа эволюции}
+  \small
+  Пусть $\Pi = \{\pi_1, \ldots, \pi_p\}$ --- набор исходных политик агента.
+
+  \vspace{0.1cm}
+  После $N$ шагов эволюции: $\mathcal{A}_0 \xrightarrow{\mu_1} \mathcal{A}_1 \xrightarrow{\mu_2} \cdots \xrightarrow{\mu_N} \mathcal{A}_N$
+
+  \vspace{0.2cm}
+  \textbf{Policy Retention Rate:}
+  \[
+    \boxed{\;\operatorname{PRR}(N) = \frac{|\{\pi_k \in \Pi : \mathcal{A}_N \text{ соблюдает } \pi_k\}|}{|\Pi|}\;}
+  \]
+
+  \textbf{Промптовый дрейф:}
+  \[
+    d_{\text{drift}}(N) = 1 - \cos\bigl(\operatorname{emb}(P_0),\; \operatorname{emb}(P_N)\bigr)
+  \]
+
+  \textbf{Надёжность} (pass\textsuperscript{k}):
+  \[
+    \operatorname{pass}^k = P(\text{success})^k
+  \]
+\end{frame}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Текущие методы}
+% ═══════════════════════════════════════════════════════════════
+
+% --- Слайд 8a: только таблица ---
+\begin{frame}{Обзор существующих решений: классификация}
+  \begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{l c c c c}
+      \toprule
+      \textbf{Категория} & \textbf{Кол-во} & \textbf{Runtime} & \textbf{Auto-Rules} & \textbf{Adaptive} \\
+      \midrule
+      Шаблонные (open-source) & 7 & \textcolor{okgreen}{\checkmark} & \textcolor{warnred}{$\times$} & \textcolor{warnred}{$\times$} \\
+      Шаблонные (коммерч.) & 5 & \textcolor{okgreen}{\checkmark} & $\sim$ & \textcolor{warnred}{$\times$} \\
+      Полу-автоматические & 8 & $\sim$ & $\sim$ & \textcolor{warnred}{$\times$} \\
+      Research (near-auto) & 20 & $\sim$ & \textcolor{okgreen}{\checkmark} & \textcolor{okgreen}{\checkmark} \\
+      Evaluation & 3 & $\sim$ & \textcolor{warnred}{$\times$} & \textcolor{warnred}{$\times$} \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \vspace{0.3cm}
+  \begin{block}{Gap между research и production}
+    20 research-систем существуют как papers/prototypes. Factual grounding --- \textcolor{warnred}{слабое место}: только NeMo Guardrails имеет RAG grounding из коробки.
+  \end{block}
+\end{frame}
+
+% --- Слайд 8b: основные системы ---
+\begin{frame}{Обзор существующих решений: ключевые системы}
+  \small
+  \begin{table}[h]
+    \centering
+    \begin{tabular}{l l l}
+      \toprule
+      \textbf{Система} & \textbf{Тип} & \textbf{Grounding} \\
+      \midrule
+      NeMo Guardrails (NVIDIA) & Open-source, Colang DSL & RAG grounding rail \\
+      LlamaFirewall (Meta) & Open-source, Python API & CoT integrity аудит \\
+      AGrail (ACL 2025) & Research, adaptive & Lifelong safety checks \\
+      MiniCheck (EMNLP 2024) & Research, NLI & Sentence-level fact-check \\
+      RAGAS & Evaluation & Faithfulness метрики \\
+      Guardrails AI & Semi-auto, validators & Hallucination detection \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \vspace{0.2cm}
+  Ни одна система не реализует полный \textbf{claim-level verification loop} с source binding, NLI-верификацией и controlled reaction в runtime.
+\end{frame}
+
+% --- Слайд 9: компактнее ---
+\begin{frame}{Методы обнаружения галлюцинаций}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \textbf{С эталонной разметкой:}
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item FActScore --- claim-level precision
+        \item MiniCheck --- sentence-level NLI
+        \item RAGAS Faithfulness
+      \end{itemize}
+      \vspace{0.2cm}
+      \textbf{Без эталонной разметки:}
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item \textbf{Semantic Entropy} (Nature 2024)
+        \item SelfCheckGPT (EMNLP 2023)
+        \item Internal states probing
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Наш подход}
+        \begin{enumerate}\setlength\itemsep{2pt}
+          \item Claim extraction через LLM
+          \item Evidence binding (RAG + embeddings)
+          \item NLI-верификация каждого claim
+          \item Controlled reaction
+        \end{enumerate}
+      \end{block}
+      \vspace{0.1cm}
+      \textcolor{hseblue}{$\Rightarrow$} Работает в \textbf{runtime}, model-agnostic, не требует эталона
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Саморазвивающиеся агенты}
+% ═══════════════════════════════════════════════════════════════
+
+% --- Слайд 10: компактнее ---
+\begin{frame}{Self-Evolving Agents: суть проблемы}
+  \small
+  \begin{block}{Определение}
+    \textbf{Саморазвивающийся ИИ-агент} --- система, способная изменять memory, промпты, workflows, toolset в процессе эксплуатации.
+  \end{block}
+
+  \vspace{0.2cm}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \textbf{Типы мутаций:}
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item Изменение системного промпта
+        \item Обновление памяти агента
+        \item Расширение/сужение toolset
+        \item Модификация workflow
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \textbf{Риски дрейфа:}
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item[\textcolor{warnred}{$\times$}] Отказ от инструментов
+        \item[\textcolor{warnred}{$\times$}] Потеря цитирования источников
+        \item[\textcolor{warnred}{$\times$}] Удаление дисклеймеров
+        \item[\textcolor{warnred}{$\times$}] Нарушение safety-политик
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Эксперимент: 10 шагов эволюции}
+  \begin{center}
+    \small
+    \begin{tabular}{c l l}
+      \toprule
+      \textbf{Шаг} & \textbf{Мотивация} & \textbf{Эффект} \\
+      \midrule
+      1 & Краткие ответы & Сокращение деталей \\
+      2 & Уверенные формулировки & Убраны ``возможно'', ``вероятно'' \\
+      3 & Быстрые ответы & \textcolor{warnred}{$\downarrow$ tool usage} \\
+      4 & Без ссылок на источники & \textcolor{warnred}{$\downarrow$ source citation} \\
+      5 & Без дисклеймеров & \textcolor{warnred}{$\downarrow$ disclaimer rate} \\
+      \midrule
+      6 & Конкретные рекомендации & Прямые мед.\ советы \\
+      7 & Дополнение из знаний & Смешение RAG + LLM \\
+      8 & Максимальная уверенность & Безусловные утверждения \\
+      9 & Отказ от search & \textcolor{warnred}{0\% tool usage} \\
+      10 & Полный дрейф & Агент ``всё знает'' \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{frame}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Алгоритм}
+% ═══════════════════════════════════════════════════════════════
+
+% --- Слайд 12: схема уменьшена ---
+\begin{frame}{Архитектура Factual Grounding Layer}
+  \begin{center}
+    \begin{tikzpicture}[
+      node distance=0.4cm and 0.5cm,
+      box/.style={draw, rounded corners, minimum width=2.2cm, minimum height=0.65cm, align=center, font=\scriptsize},
+      arrow/.style={-{Stealth[length=1.5mm]}, thick},
+      every node/.style={font=\scriptsize}
+    ]
+      \node[box, fill=gray!15] (user) {Запрос\\пользователя};
+      \node[box, fill=blue!10, right=of user] (agent) {LLM-агент\\(draft)};
+      \node[box, fill=orange!15, right=of agent] (extract) {Claim\\Extractor};
+      \node[box, fill=orange!15, right=of extract] (dedup) {Claim\\Dedup};
+      \node[box, fill=green!12, below=0.5cm of extract] (binder) {Source\\Binder};
+      \node[box, fill=green!12, left=of binder] (index) {ChromaDB\\(RAG)};
+      \node[box, fill=yellow!15, right=of binder] (verifier) {Claim\\Verifier};
+      \node[box, fill=red!8, right=of verifier] (reaction) {Reaction\\Handler};
+      \node[box, fill=hseblue!12, below=0.5cm of reaction] (response) {Финальный\\ответ};
+
+      \draw[arrow] (user) -- (agent);
+      \draw[arrow] (agent) -- (extract);
+      \draw[arrow] (extract) -- (dedup);
+      \draw[arrow] (dedup) |- (binder);
+      \draw[arrow] (index) -- (binder);
+      \draw[arrow] (binder) -- (verifier);
+      \draw[arrow] (verifier) -- (reaction);
+      \draw[arrow] (reaction) -- (response);
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace{0.15cm}
+  \small
+  \textbf{Режимы}: \texttt{monitor} (помечает) $\mid$ \texttt{enforce} (удаляет) $\mid$ \texttt{strict} (блокирует)
+
+  \vspace{0.1cm}
+  Каждый шаг трассируется (trace\_id, timestamps, промежуточные результаты).
+\end{frame}
+
+\begin{frame}{Claim-Level Reasoning Loop: детали}
+  \small
+  \begin{enumerate}\setlength\itemsep{4pt}
+    \item \textbf{Claim Extraction} --- LLM извлекает атомарные утверждения
+      \begin{itemize}\setlength\itemsep{1pt}
+        \item Типы: \texttt{factual}, \texttt{statistical}, \texttt{recommendation}, \texttt{temporal}, \texttt{causal}
+        \item Фильтрация тривиальных фраз (regex)
+      \end{itemize}
+
+    \item \textbf{Claim Deduplication} --- embedding similarity ($\theta > 0.92$)
+
+    \item \textbf{Source Binding} --- для каждого claim:
+      \begin{itemize}\setlength\itemsep{1pt}
+        \item Embedding search в ChromaDB (top-$K$)
+        \item NLI-проверка: \texttt{SUPPORTS} / \texttt{REFUTES} / \texttt{NEI}
+      \end{itemize}
+
+    \item \textbf{Claim Verification} --- вердикт:
+          \textcolor{okgreen}{\texttt{VERIFIED}},
+          \textcolor{warnred}{\texttt{REFUTED}},
+          \textcolor{orange}{\texttt{UNVERIFIED}},
+          \texttt{SKIP}
+
+    \item \textbf{Controlled Reaction} --- применение вердиктов к ответу
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Технологический стек}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \textbf{Основные компоненты:}
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item Python 3.11+
+        \item LangChain / LangGraph
+        \item ChromaDB (vector store)
+        \item OpenAI Embeddings
+        \item NeMo Guardrails (base)
+        \item Pydantic, Prometheus
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \textbf{LLM-провайдеры:}
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item OpenAI GPT-4o / GPT-4.1-mini
+        \item GigaChat (Sber)
+        \item DeepSeek R1
+      \end{itemize}
+      \vspace{0.2cm}
+      \textbf{Тестовый датасет:}
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item 30 мед. + 20 фин. + 10 general
+        \item Ground-truth claims + sources
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Результаты}
+% ═══════════════════════════════════════════════════════════════
+
+\begin{frame}{Эксперимент 1: Симулированный дрейф (worst-case)}
+  \small
+  Ручные мутации промпта --- моделирование реалистичного сценария деградации.
+
+  \begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.1}
+    \begin{tabular}{l l r r r}
+      \toprule
+      \textbf{Модель} & \textbf{Метрика} & \textbf{Base} & \textbf{Evolved} & \textbf{+FGL} \\
+      \midrule
+      \multirow{3}{*}{\shortstack[l]{GPT-4.1-mini\\(5 шагов, $n$=5)}} & Tool Usage & 100\% & \textcolor{warnred}{60\%} & 60\% \\
+      & Source Citation & 100\% & \textcolor{warnred}{20\%} & \textcolor{okgreen}{100\%} \\
+      & Latency (ms) & 6\,869 & 3\,559 & 22\,261 \\
+      \midrule
+      \multirow{3}{*}{\shortstack[l]{GPT-5.1\\(10 шагов, $n$=30)}} & Tool Usage & 93\% & \textcolor{warnred}{10\%} & 7\% \\
+      & Source Citation & 53\% & \textcolor{warnred}{20\%} & \textcolor{okgreen}{100\%} \\
+      & Latency (ms) & 8\,549 & 4\,846 & 24\,697 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \begin{block}{Результат}
+    При дрейфе citation падает до 20\%. FGL восстанавливает до \textcolor{okgreen}{100\%} на обеих моделях.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Эксперимент 2: Реальная эволюция (langmem)}
+  \footnotesize
+  Промпт эволюционирует через \textbf{langmem prompt optimizer} на основе траекторий и фидбека.
+  \vspace{-0.1cm}
+  \begin{table}[h]
+    \centering
+    \footnotesize
+    \begin{tabular}{l l r r r}
+      \toprule
+      \textbf{Модель} & \textbf{Метрика} & \textbf{Base} & \textbf{Evolved} & \textbf{+FGL} \\
+      \midrule
+      \multirow{2}{*}{\shortstack[l]{GPT-4.1-mini\\($n$=10)}} & Source Citation & 60\% & \textcolor{warnred}{40\%} & \textcolor{okgreen}{100\%} \\
+      & Latency (ms) & 4\,673 & 5\,122 & 17\,706 \\
+      \midrule
+      \multirow{2}{*}{\shortstack[l]{GPT-5.1\\($n$=30)}} & Source Citation & 40\% & 47\% & \textcolor{okgreen}{100\%} \\
+      & Latency (ms) & 7\,974 & 8\,676 & 29\,958 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \vspace{-0.1cm}
+  \begin{block}{Результат}
+    \footnotesize
+    Оптимизатор консервативен --- промпт не деградировал. FGL поднимает citation с 40--60\% до \textcolor{okgreen}{100\%} даже без дрейфа.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Source Citation Rate: все эксперименты}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=13cm, height=6cm,
+        ybar,
+        bar width=11pt,
+        ylabel={\small Source Citation Rate (\%)},
+        symbolic x coords={Sim. 4.1-mini, Sim. 5.1, LM 4.1-mini, LM 5.1},
+        xtick=data,
+        x tick label style={font=\footnotesize},
+        ymin=0, ymax=115,
+        legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3, font=\small},
+        enlarge x limits=0.2,
+        nodes near coords,
+        every node near coord/.append style={font=\scriptsize},
+        grid=major,
+        grid style={dashed, gray!30},
+      ]
+        \addplot[fill=hseblue!70] coordinates {(Sim. 4.1-mini, 100) (Sim. 5.1, 53) (LM 4.1-mini, 60) (LM 5.1, 40)};
+        \addplot[fill=warnred!70] coordinates {(Sim. 4.1-mini, 20) (Sim. 5.1, 20) (LM 4.1-mini, 40) (LM 5.1, 47)};
+        \addplot[fill=okgreen!70] coordinates {(Sim. 4.1-mini, 100) (Sim. 5.1, 100) (LM 4.1-mini, 100) (LM 5.1, 100)};
+        \legend{Baseline, Evolved (no FGL), Evolved + FGL}
+      \end{axis}
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Латентность: overhead FGL-пайплайна}
+  \begin{center}
+    \begin{tikzpicture}
+      \begin{axis}[
+        width=12cm, height=5.5cm,
+        ybar,
+        bar width=11pt,
+        ylabel={\small Avg Latency (ms)},
+        symbolic x coords={Baseline, Evolved, Evolved+FGL},
+        xtick=data,
+        ymin=0, ymax=35000,
+        legend style={at={(0.5,-0.2)}, anchor=north, legend columns=2, font=\small},
+        enlarge x limits=0.25,
+        nodes near coords,
+        every node near coord/.append style={font=\scriptsize},
+        grid=major,
+        grid style={dashed, gray!30},
+      ]
+        \addplot[fill=hseblue!50] coordinates {(Baseline, 6869) (Evolved, 3559) (Evolved+FGL, 22261)};
+        \addplot[fill=hseblue!80] coordinates {(Baseline, 8549) (Evolved, 4846) (Evolved+FGL, 24697)};
+        \addplot[fill=orange!40] coordinates {(Baseline, 4673) (Evolved, 5122) (Evolved+FGL, 17706)};
+        \addplot[fill=orange!70] coordinates {(Baseline, 7974) (Evolved, 8676) (Evolved+FGL, 29958)};
+        \legend{Sim 4.1-mini, Sim 5.1, LM 4.1-mini, LM 5.1}
+      \end{axis}
+    \end{tikzpicture}
+  \end{center}
+
+  \small
+  FGL overhead: $\approx$13--22 сек. Оптимизация: батчинг NLI, кэш embeddings, лёгкие модели.
+\end{frame}
+
+% --- Слайд 18: таблица крупнее ---
+\begin{frame}{Полная система метрик}
+  \begin{table}[h]
+    \centering
+    \small
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{l l l c}
+      \toprule
+      \textbf{Блок} & \textbf{Метрика} & \textbf{Формула} & \textbf{Авто} \\
+      \midrule
+      \multirow{3}{*}{Factual} & Claim-Level Precision & $\frac{\text{supported}}{\text{total claims}}$ & Да \\
+      & Faithfulness (RAGAS) & $\frac{\text{entailed}}{\text{total claims}}$ & Да \\
+      & Unsupported Claim Rate & $\frac{\text{no evidence}}{\text{total claims}}$ & Да \\
+      \midrule
+      \multirow{2}{*}{Hallucination} & Semantic Entropy & $-\!\sum p(G_l) \log p(G_l)$ & Да \\
+      & SelfCheckGPT & consistency score & Да \\
+      \midrule
+      Tool & Tool Selection Accuracy & $\frac{\text{correct}}{\text{total calls}}$ & $\sim$ \\
+      \midrule
+      Safety & Policy Retention Rate & $\frac{\text{retained}}{\text{total policies}}$ & $\sim$ \\
+      \midrule
+      Perf. & Latency Overhead & $\Delta t$ (ms) & Да \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+% --- Слайд 19: разбит на два столбца компактнее ---
+\begin{frame}{Выводы и дальнейшие шаги}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Достигнуто:}
+      \begin{itemize}\setlength\itemsep{3pt}
+        \item[\textcolor{okgreen}{\checkmark}] Claim-level reasoning loop end-to-end
+        \item[\textcolor{okgreen}{\checkmark}] FGL восстанавливает citation при дрейфе
+        \item[\textcolor{okgreen}{\checkmark}] Model-agnostic архитектура
+        \item[\textcolor{okgreen}{\checkmark}] Benchmark: self-evolving агенты
+        \item[\textcolor{okgreen}{\checkmark}] 60 вопросов с ground-truth
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Дальнейшие шаги:}
+      \begin{itemize}\setlength\itemsep{3pt}
+        \item ToolGuard (верификация tool calls)
+        \item AgentSpec + Factual Contracts
+        \item Прогон: GigaChat, GPT-4o, DeepSeek
+        \item Semantic Entropy + RAGAS
+        \item Оптимизация latency
+        \item Статья (A/A* конференция)
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,587 @@
+[
+  {
+    "id": "med_001",
+    "domain": "medical",
+    "question": "Что такое меланома кожи и каково её происхождение?",
+    "expected_claims": [
+      {
+        "text": "Меланома кожи — злокачественная опухоль нейроэктодермального происхождения",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Меланома исходит из меланоцитов (пигментных клеток) кожи",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_002",
+    "domain": "medical",
+    "question": "Какова заболеваемость меланомой кожи в России в 2023 году?",
+    "expected_claims": [
+      {
+        "text": "В 2023 году в РФ меланомой кожи заболело 13270 человек",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Грубый показатель заболеваемости составил 9,07 на 100 000 населения",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Стандартизованный показатель заболеваемости составил 5,15 на 100 000 населения",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "medium"
+  },
+  {
+    "id": "med_003",
+    "domain": "medical",
+    "question": "Каковы основные факторы риска развития меланомы кожи?",
+    "expected_claims": [
+      {
+        "text": "Самый значимый фактор риска — воздействие ультрафиолетового излучения типа В (290–320 нм) и типа А (320–400 нм)",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Наличие более 10 диспластических невусов является фактором риска",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Наличие более 100 обычных приобретённых невусов является фактором риска",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Семейный анамнез меланомы кожи является фактором риска",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_004",
+    "domain": "medical",
+    "question": "Какие отступы рекомендуются при хирургическом иссечении меланомы кожи?",
+    "expected_claims": [
+      {
+        "text": "Отступ 0,5 см для меланомы in situ",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      },
+      {
+        "text": "Отступ 1 см при толщине опухоли по Бреслоу ≤2 мм",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      },
+      {
+        "text": "Отступ 2 см при толщине опухоли >2 мм",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_005",
+    "domain": "medical",
+    "question": "Каковы стадии распределения меланомы кожи при первичной диагностике в России в 2023 году?",
+    "expected_claims": [
+      {
+        "text": "Стадия I — 42,5%",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Стадия II — 37,8%",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Стадия III — 10,8%",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Стадия IV — 7,9%",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "medium"
+  },
+  {
+    "id": "med_006",
+    "domain": "medical",
+    "question": "Что такое хронический миелоидный лейкоз и какой код по МКБ ему соответствует?",
+    "expected_claims": [
+      {
+        "text": "Хронический миелоидный лейкоз кодируется по МКБ-10 как C92.1",
+        "source": "minzdrav_dataset/chronic_myeloid_leukemia_2024.md",
+        "type": "factual"
+      },
+      {
+        "text": "Клинические рекомендации утверждены в 2024 году",
+        "source": "minzdrav_dataset/chronic_myeloid_leukemia_2024.md",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_007",
+    "domain": "medical",
+    "question": "Какой код по МКБ-10 соответствует раку шейки матки?",
+    "expected_claims": [
+      {
+        "text": "Рак шейки матки кодируется по МКБ-10 как C53 и D06",
+        "source": "minzdrav_dataset/cervical_cancer_2024.md",
+        "type": "factual"
+      },
+      {
+        "text": "Клинические рекомендации для рака шейки матки утверждены в 2024 году",
+        "source": "minzdrav_dataset/cervical_cancer_2024.md",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_008",
+    "domain": "medical",
+    "question": "Что такое гепатоцеллюлярный рак печени и каков его код по МКБ?",
+    "expected_claims": [
+      {
+        "text": "Гепатоцеллюлярный рак печени кодируется по МКБ-10 как C22.0 и D37.6",
+        "source": "minzdrav_dataset/liver_cancer_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Клинические рекомендации утверждены в 2025 году",
+        "source": "minzdrav_dataset/liver_cancer_2025.md",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_009",
+    "domain": "medical",
+    "question": "Какой код по МКБ-10 соответствует раку ободочной кишки?",
+    "expected_claims": [
+      {
+        "text": "Рак ободочной кишки и ректосигмоидного перехода кодируется по МКБ-10 как C18, C19, D01.0",
+        "source": "minzdrav_dataset/colon_cancer_2025.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_010",
+    "domain": "medical",
+    "question": "Какие типы ультрафиолетового излучения вызывают меланому кожи?",
+    "expected_claims": [
+      {
+        "text": "Ультрафиолетовое излучение типа В имеет длину волны 290–320 нм",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Ультрафиолетовое излучение типа А имеет длину волны 320–400 нм",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Чувствительность кожи к УФ классифицируется на 6 типов",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "medium"
+  },
+  {
+    "id": "med_011",
+    "domain": "medical",
+    "question": "Какова смертность от меланомы кожи в России в 2023 году?",
+    "expected_claims": [
+      {
+        "text": "В 2023 году от меланомы кожи в России умерло 1539 мужчин и 1552 женщины",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Грубый показатель смертности составил 2,09 на 100 000 населения",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Средний возраст умерших составил 65,6 года",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "medium"
+  },
+  {
+    "id": "med_012",
+    "domain": "medical",
+    "question": "Какие варианты меланомы встречаются у детей?",
+    "expected_claims": [
+      {
+        "text": "Меланома на фоне врождённого гигантского меланоцитарного невуса (ВГМН) — редкий вариант с неблагоприятным прогнозом",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Спитцоидная (Spitzoid) меланома составляет примерно половину случаев у подростков с благоприятным течением",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Меланома de novo составляет 40-50% всех меланом кожи у детей",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_013",
+    "domain": "medical",
+    "question": "Что такое острый лимфобластный лейкоз и какой код по МКБ ему соответствует?",
+    "expected_claims": [
+      {
+        "text": "Острый лимфобластный лейкоз — это злокачественное заболевание системы кроветворения",
+        "source": "minzdrav_dataset/acute_lymphoblastic_leukemia_2024.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_014",
+    "domain": "medical",
+    "question": "Что такое лимфома Ходжкина и какие клинические рекомендации для неё существуют?",
+    "expected_claims": [
+      {
+        "text": "Лимфома Ходжкина — злокачественное новообразование лимфоидной ткани",
+        "source": "minzdrav_dataset/hodgkins_lymphoma_2024.md",
+        "type": "factual"
+      },
+      {
+        "text": "Клинические рекомендации утверждены в 2024 году",
+        "source": "minzdrav_dataset/hodgkins_lymphoma_2024.md",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_015",
+    "domain": "medical",
+    "question": "Какие коды по МКБ-10 соответствуют множественной миеломе?",
+    "expected_claims": [
+      {
+        "text": "Множественная миелома имеет клинические рекомендации, утверждённые в 2024 году",
+        "source": "minzdrav_dataset/multiple_myeloma_2024.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_016",
+    "domain": "medical",
+    "question": "Что такое рак мочевого пузыря и каков его код по МКБ?",
+    "expected_claims": [
+      {
+        "text": "Рак мочевого пузыря имеет клинические рекомендации, утверждённые в 2023 году",
+        "source": "minzdrav_dataset/bladder_cancer_2023.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_017",
+    "domain": "medical",
+    "question": "Какая возрастная категория указана для клинических рекомендаций по меланоме кожи?",
+    "expected_claims": [
+      {
+        "text": "Клинические рекомендации по меланоме кожи охватывают взрослых и детей",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "med_018",
+    "domain": "medical",
+    "question": "Каковы рекомендации по лучевой терапии при меланоме кожи I–II стадии?",
+    "expected_claims": [
+      {
+        "text": "При невозможности хирургического иссечения рекомендуется лучевая терапия в режиме 64–68 Гр за 32–35 фракций в течение 6–7 недель",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      },
+      {
+        "text": "Альтернативный режим — 50,0–57,5 Гр за 20–23 фракции в течение 4–5 недель",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_019",
+    "domain": "medical",
+    "question": "Что такое фолликулярная лимфома?",
+    "expected_claims": [
+      {
+        "text": "Фолликулярная лимфома — злокачественное новообразование лимфоидной ткани",
+        "source": "minzdrav_dataset/follicular_lymphoma_2024.md",
+        "type": "factual"
+      },
+      {
+        "text": "Клинические рекомендации по фолликулярной лимфоме утверждены в 2024 году",
+        "source": "minzdrav_dataset/follicular_lymphoma_2024.md",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_020",
+    "domain": "medical",
+    "question": "Что такое нейробластома и к какой возрастной категории относятся клинические рекомендации?",
+    "expected_claims": [
+      {
+        "text": "Нейробластома — злокачественное новообразование",
+        "source": "minzdrav_dataset/neuroblastoma_2024.md",
+        "type": "factual"
+      },
+      {
+        "text": "Клинические рекомендации по нейробластоме утверждены в 2024 году",
+        "source": "minzdrav_dataset/neuroblastoma_2024.md",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_021",
+    "domain": "medical",
+    "question": "Рекомендуется ли профилактическая лимфаденэктомия при меланоме кожи?",
+    "expected_claims": [
+      {
+        "text": "Не рекомендуется рутинное выполнение профилактической лимфаденэктомии у взрослых пациентов",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      },
+      {
+        "text": "Не рекомендуется предоперационная лучевая терапия на регионарные лимфатические узлы",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_022",
+    "domain": "medical",
+    "question": "Каков средний возраст заболевших меланомой кожи в России?",
+    "expected_claims": [
+      {
+        "text": "Средний возраст заболевших меланомой составил 61,9 года (оба пола)",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "У мужчин средний возраст заболевших — 61,5 года",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "У женщин средний возраст заболевших — 62,1 года",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "medium"
+  },
+  {
+    "id": "med_023",
+    "domain": "medical",
+    "question": "Что такое рак поджелудочной железы и каков его код по МКБ?",
+    "expected_claims": [
+      {
+        "text": "Рак поджелудочной железы имеет клинические рекомендации, утверждённые в 2024 году",
+        "source": "minzdrav_dataset/pancreatic_cancer_2024.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_024",
+    "domain": "medical",
+    "question": "Что такое рак пищевода и когда были утверждены клинические рекомендации?",
+    "expected_claims": [
+      {
+        "text": "Клинические рекомендации по раку пищевода утверждены в 2024 году",
+        "source": "minzdrav_dataset/esophageal_cancer_2024.md",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_025",
+    "domain": "medical",
+    "question": "Какова летальность на первом году от меланомы кожи в России?",
+    "expected_claims": [
+      {
+        "text": "Летальность на 1-м году составила 6,9%",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "В 2013 году летальность на 1-м году составляла 12,3%",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "medium"
+  },
+  {
+    "id": "med_026",
+    "domain": "medical",
+    "question": "Каковы особенности меланомы слизистых оболочек с точки зрения стадирования TNM?",
+    "expected_claims": [
+      {
+        "text": "Меланома слизистых оболочек является агрессивной опухолью",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      },
+      {
+        "text": "Критерии T1 и T2 пропущены, как и стадии I и II",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_027",
+    "domain": "medical",
+    "question": "Что такое саркома Капоши?",
+    "expected_claims": [
+      {
+        "text": "Саркома Капоши имеет клинические рекомендации, утверждённые в 2024 году",
+        "source": "minzdrav_dataset/kaposi_sarcoma_2024.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_028",
+    "domain": "medical",
+    "question": "Какова частота мутации BRAF при меланоме кожи de novo у детей?",
+    "expected_claims": [
+      {
+        "text": "Меланома кожи de novo у детей в 40-60% случаев содержит мутацию в гене BRAF",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Меланома de novo генетически сходна с меланомой кожи у взрослых",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_029",
+    "domain": "medical",
+    "question": "Какие методы диагностики рекомендуются при меланоме кожи?",
+    "expected_claims": [
+      {
+        "text": "Рекомендуется эксцизионная биопсия пигментного образования с отступом от видимого края не более 0,5 см",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      },
+      {
+        "text": "После подтверждения диагноза рубец после биопсии иссекается с большим отступом в сроки 4–8 недель",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "recommendation"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "high"
+  },
+  {
+    "id": "med_030",
+    "domain": "medical",
+    "question": "Сколько пациентов с меланомой кожи состояли под наблюдением в конце 2022 года в России?",
+    "expected_claims": [
+      {
+        "text": "На конец 2022 года под наблюдением состояли 106 061 пациент",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "Показатель составил 72,7 на 100 000 населения",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      },
+      {
+        "text": "5 лет и более наблюдались 65 123 пациента (61,4%)",
+        "source": "minzdrav_dataset/melanoma_2025.md",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "medium"
+  }
+]

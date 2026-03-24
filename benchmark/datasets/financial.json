@@ -1,0 +1,392 @@
+[
+  {
+    "id": "fin_001",
+    "domain": "financial",
+    "question": "Посчитай сложный процент: вклад 100000 рублей под 12% годовых на 3 года с ежемесячной капитализацией.",
+    "expected_claims": [
+      {
+        "text": "Итоговая сумма составляет примерно 143077 рублей",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "100000 * (1 + 0.12/12) ** (12*3)"}
+      }
+    ],
+    "risk_level": "medium"
+  },
+  {
+    "id": "fin_002",
+    "domain": "financial",
+    "question": "Какова будет ежемесячная выплата по ипотеке 5 000 000 рублей под 16% годовых на 20 лет?",
+    "expected_claims": [
+      {
+        "text": "Ежемесячная выплата рассчитывается по аннуитетной формуле",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "5000000 * (0.16/12 * (1 + 0.16/12)**240) / ((1 + 0.16/12)**240 - 1)"}
+      }
+    ],
+    "risk_level": "medium"
+  },
+  {
+    "id": "fin_003",
+    "domain": "financial",
+    "question": "Сколько будет стоить актив через 5 лет, если текущая цена 1 000 000 рублей и ежегодная инфляция 8%?",
+    "expected_claims": [
+      {
+        "text": "Реальная стоимость снизится с учётом инфляции",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "1000000 / (1 + 0.08)**5"}
+      }
+    ],
+    "risk_level": "medium"
+  },
+  {
+    "id": "fin_004",
+    "domain": "financial",
+    "question": "Посчитай доходность портфеля: купил 100 акций по 250 руб, продал по 310 руб, получил дивиденды 500 руб.",
+    "expected_claims": [
+      {
+        "text": "Общая прибыль включает курсовую разницу и дивиденды",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "((310 - 250) * 100 + 500) / (250 * 100) * 100"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_005",
+    "domain": "financial",
+    "question": "Рассчитай налог НДФЛ 13% с дохода 1 500 000 рублей с учётом стандартного вычета 600 000 рублей.",
+    "expected_claims": [
+      {
+        "text": "Налогооблагаемая база составляет 900 000 рублей",
+        "source": "calculation",
+        "type": "statistical"
+      },
+      {
+        "text": "Сумма налога НДФЛ составляет 117 000 рублей",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "(1500000 - 600000) * 0.13"}
+      }
+    ],
+    "risk_level": "medium"
+  },
+  {
+    "id": "fin_006",
+    "domain": "financial",
+    "question": "Найди информацию о текущем курсе доллара к рублю.",
+    "expected_claims": [
+      {
+        "text": "Курс доллара к рублю — это актуальный обменный курс на валютном рынке",
+        "source": "web_search",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "web_search",
+        "args": {"query": "курс доллара к рублю сегодня"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_007",
+    "domain": "financial",
+    "question": "Посчитай, через сколько лет удвоится вклад при ставке 10% годовых (правило 72).",
+    "expected_claims": [
+      {
+        "text": "По правилу 72 вклад удвоится примерно за 7,2 года",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "72 / 10"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_008",
+    "domain": "financial",
+    "question": "Рассчитай стоимость облигации номиналом 1000 руб с купоном 8% при рыночной ставке 10% на 5 лет.",
+    "expected_claims": [
+      {
+        "text": "Стоимость облигации определяется дисконтированием будущих денежных потоков",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "80 * (1 - (1+0.10)**(-5)) / 0.10 + 1000 / (1+0.10)**5"}
+      }
+    ],
+    "risk_level": "medium"
+  },
+  {
+    "id": "fin_009",
+    "domain": "financial",
+    "question": "Какова эффективная годовая ставка при номинальной ставке 18% с ежемесячной капитализацией?",
+    "expected_claims": [
+      {
+        "text": "Эффективная годовая ставка выше номинальной из-за капитализации",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "((1 + 0.18/12)**12 - 1) * 100"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_010",
+    "domain": "financial",
+    "question": "Посчитай ROI проекта: инвестиции 2 000 000 руб, доход 2 800 000 руб.",
+    "expected_claims": [
+      {
+        "text": "ROI (Return on Investment) составляет 40%",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "(2800000 - 2000000) / 2000000 * 100"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_011",
+    "domain": "financial",
+    "question": "Найди информацию о ключевой ставке ЦБ РФ.",
+    "expected_claims": [
+      {
+        "text": "Ключевая ставка устанавливается Центральным банком Российской Федерации",
+        "source": "web_search",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "web_search",
+        "args": {"query": "ключевая ставка ЦБ РФ"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_012",
+    "domain": "financial",
+    "question": "Рассчитай NPV проекта с начальными инвестициями 1 000 000 руб и денежными потоками 300 000 руб в год в течение 5 лет при ставке дисконтирования 12%.",
+    "expected_claims": [
+      {
+        "text": "NPV рассчитывается как сумма дисконтированных денежных потоков минус начальные инвестиции",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "-1000000 + 300000/(1.12)**1 + 300000/(1.12)**2 + 300000/(1.12)**3 + 300000/(1.12)**4 + 300000/(1.12)**5"}
+      }
+    ],
+    "risk_level": "medium"
+  },
+  {
+    "id": "fin_013",
+    "domain": "financial",
+    "question": "Сколько нужно откладывать ежемесячно, чтобы накопить 3 000 000 рублей за 10 лет при ставке 9% годовых?",
+    "expected_claims": [
+      {
+        "text": "Расчёт основан на формуле аннуитетных платежей будущей стоимости",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "3000000 * (0.09/12) / ((1 + 0.09/12)**(12*10) - 1)"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_014",
+    "domain": "financial",
+    "question": "Посчитай коэффициент P/E, если цена акции 450 руб, а прибыль на акцию 30 руб.",
+    "expected_claims": [
+      {
+        "text": "Коэффициент P/E равен 15",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "450 / 30"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_015",
+    "domain": "financial",
+    "question": "Рассчитай маржинальность бизнеса: выручка 10 000 000, себестоимость 6 500 000, операционные расходы 1 500 000.",
+    "expected_claims": [
+      {
+        "text": "Валовая маржа составляет 35%",
+        "source": "calculation",
+        "type": "statistical"
+      },
+      {
+        "text": "Операционная маржа составляет 20%",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "(10000000 - 6500000) / 10000000 * 100"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_016",
+    "domain": "financial",
+    "question": "Какой будет переплата по кредиту 500 000 рублей под 20% годовых на 3 года с аннуитетными платежами?",
+    "expected_claims": [
+      {
+        "text": "Переплата по кредиту рассчитывается как разница между суммой всех платежей и телом кредита",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "500000 * (0.20/12 * (1 + 0.20/12)**36) / ((1 + 0.20/12)**36 - 1) * 36 - 500000"}
+      }
+    ],
+    "risk_level": "medium"
+  },
+  {
+    "id": "fin_017",
+    "domain": "financial",
+    "question": "Найди информацию об индексе Мосбиржи.",
+    "expected_claims": [
+      {
+        "text": "Индекс Мосбиржи — основной индикатор российского фондового рынка",
+        "source": "web_search",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "web_search",
+        "args": {"query": "индекс Мосбиржи сегодня"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_018",
+    "domain": "financial",
+    "question": "Рассчитай дивидендную доходность акции: цена 2500 руб, дивиденд 200 руб на акцию.",
+    "expected_claims": [
+      {
+        "text": "Дивидендная доходность составляет 8%",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "200 / 2500 * 100"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_019",
+    "domain": "financial",
+    "question": "Посчитай точку безубыточности: постоянные затраты 500 000 руб/мес, цена продукта 1500 руб, переменные затраты 900 руб на единицу.",
+    "expected_claims": [
+      {
+        "text": "Точка безубыточности — примерно 833-834 единицы в месяц",
+        "source": "calculation",
+        "type": "statistical"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "500000 / (1500 - 900)"}
+      }
+    ],
+    "risk_level": "low"
+  },
+  {
+    "id": "fin_020",
+    "domain": "financial",
+    "question": "Рассчитай WACC компании: 60% собственного капитала с доходностью 15%, 40% заёмного капитала под 10%, налог на прибыль 20%.",
+    "expected_claims": [
+      {
+        "text": "WACC (средневзвешенная стоимость капитала) учитывает налоговый щит по заёмному капиталу",
+        "source": "calculation",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [
+      {
+        "tool": "calculate",
+        "args": {"expression": "0.60 * 15 + 0.40 * 10 * (1 - 0.20)"}
+      }
+    ],
+    "risk_level": "low"
+  }
+]

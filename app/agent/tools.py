@@ -191,6 +191,56 @@ async def calculate_executor(expression: str) -> Dict[str, Any]:
         return {"expression": expression, "error": str(e)}
 
 
+# --- RAG: Medical Document Search ---
+
+class SearchMedicalDocsArgs(BaseModel):
+    """Arguments for search_medical_docs tool."""
+    query: str = Field(..., min_length=1, max_length=1000, description="Search query in Russian to find relevant medical guidelines")
+    max_results: int = Field(default=3, ge=1, le=10, description="Maximum number of document chunks to return")
+
+
+# Global indexer instance (initialized once, reused across calls)
+_medical_indexer = None
+
+
+async def _get_medical_indexer():
+    """Get or create the medical document indexer."""
+    global _medical_indexer
+    if _medical_indexer is None:
+        from app.grounding.indexer import DocumentIndexer
+        _medical_indexer = DocumentIndexer(
+            dataset_path=settings.grounding_dataset_path if hasattr(settings, 'grounding_dataset_path') else './minzdrav_dataset',
+            persist_directory=settings.grounding_chroma_persist_dir if hasattr(settings, 'grounding_chroma_persist_dir') else './chroma_db',
+            embedding_model=settings.grounding_embedding_model if hasattr(settings, 'grounding_embedding_model') else 'text-embedding-3-small',
+        )
+        await _medical_indexer.initialize()
+    return _medical_indexer
+
+
+async def search_medical_docs_executor(query: str, max_results: int = 3) -> Dict[str, Any]:
+    """Search medical guidelines (minzdrav clinical recommendations) for relevant information."""
+    logger.info("search_medical_docs", query=query, max_results=max_results)
+    try:
+        indexer = await _get_medical_indexer()
+        results = await indexer.search(query, k=max_results)
+
+        if not results:
+            return {"query": query, "results": [], "message": "No relevant documents found."}
+
+        formatted = []
+        for r in results:
+            formatted.append({
+                "text": r["text"][:2000],
+                "source": r["metadata"].get("source_file", "unknown"),
+                "section": r["metadata"].get("section", "unknown"),
+                "relevance": round(r["relevance_score"], 3),
+            })
+
+        return {"query": query, "results": formatted, "count": len(formatted)}
+    except Exception as e:
+        return {"error": f"Medical document search failed: {e}"}
+
+
 # --- Registration ---
 
 def register_default_tools(registry):
@@ -243,6 +293,14 @@ def register_default_tools(registry):
         schema=CalculateArgs,
         executor=calculate_executor,
         metadata={"category": "utility", "safe": True},
+    )
+
+    registry.register(
+        name="search_medical_docs",
+        description="Search Russian medical clinical guidelines (Minzdrav) for relevant information about diseases, treatments, diagnostics, and recommendations. Always use this tool for medical questions.",
+        schema=SearchMedicalDocsArgs,
+        executor=search_medical_docs_executor,
+        metadata={"category": "rag", "safe": True},
     )
 
     logger.info("Default tools registered", tools=registry.list_tools())

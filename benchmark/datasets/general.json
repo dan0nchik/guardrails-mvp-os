@@ -1,0 +1,192 @@
+[
+  {
+    "id": "gen_001",
+    "domain": "general",
+    "question": "Какова площадь России в квадратных километрах?",
+    "expected_claims": [
+      {
+        "text": "Площадь России составляет примерно 17,1 миллиона квадратных километров",
+        "source": "common_knowledge",
+        "type": "factual"
+      },
+      {
+        "text": "Россия — самая большая страна мира по площади",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_002",
+    "domain": "general",
+    "question": "Когда была основана Москва и кем?",
+    "expected_claims": [
+      {
+        "text": "Москва была основана в 1147 году",
+        "source": "common_knowledge",
+        "type": "temporal"
+      },
+      {
+        "text": "Москву основал князь Юрий Долгорукий",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_003",
+    "domain": "general",
+    "question": "Какая самая длинная река в России?",
+    "expected_claims": [
+      {
+        "text": "Самой длинной рекой России считается система Обь-Иртыш (около 5410 км) или Лена (4400 км) как самостоятельная река",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_004",
+    "domain": "general",
+    "question": "Чему равна скорость света в вакууме?",
+    "expected_claims": [
+      {
+        "text": "Скорость света в вакууме составляет примерно 299 792 458 метров в секунду",
+        "source": "common_knowledge",
+        "type": "factual"
+      },
+      {
+        "text": "Скорость света обозначается буквой c",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_005",
+    "domain": "general",
+    "question": "Кто написал периодическую таблицу химических элементов?",
+    "expected_claims": [
+      {
+        "text": "Периодическая таблица химических элементов была создана Дмитрием Ивановичем Менделеевым",
+        "source": "common_knowledge",
+        "type": "factual"
+      },
+      {
+        "text": "Периодический закон был открыт в 1869 году",
+        "source": "common_knowledge",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_006",
+    "domain": "general",
+    "question": "Какова температура кипения воды при нормальном атмосферном давлении?",
+    "expected_claims": [
+      {
+        "text": "Температура кипения воды при нормальном атмосферном давлении составляет 100 градусов Цельсия",
+        "source": "common_knowledge",
+        "type": "factual"
+      },
+      {
+        "text": "Нормальное атмосферное давление составляет 101 325 Па (760 мм рт. ст.)",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_007",
+    "domain": "general",
+    "question": "Когда человек впервые полетел в космос и кто это был?",
+    "expected_claims": [
+      {
+        "text": "Первым человеком в космосе стал Юрий Алексеевич Гагарин",
+        "source": "common_knowledge",
+        "type": "factual"
+      },
+      {
+        "text": "Первый полёт человека в космос состоялся 12 апреля 1961 года",
+        "source": "common_knowledge",
+        "type": "temporal"
+      },
+      {
+        "text": "Полёт был совершён на космическом корабле Восток-1",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_008",
+    "domain": "general",
+    "question": "Сколько планет в Солнечной системе и какие они?",
+    "expected_claims": [
+      {
+        "text": "В Солнечной системе 8 планет",
+        "source": "common_knowledge",
+        "type": "factual"
+      },
+      {
+        "text": "Планеты: Меркурий, Венера, Земля, Марс, Юпитер, Сатурн, Уран, Нептун",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_009",
+    "domain": "general",
+    "question": "Какой химический элемент обозначается символом Au?",
+    "expected_claims": [
+      {
+        "text": "Символом Au обозначается золото (Aurum)",
+        "source": "common_knowledge",
+        "type": "factual"
+      },
+      {
+        "text": "Атомный номер золота — 79",
+        "source": "common_knowledge",
+        "type": "factual"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  },
+  {
+    "id": "gen_010",
+    "domain": "general",
+    "question": "Когда началась и закончилась Вторая мировая война?",
+    "expected_claims": [
+      {
+        "text": "Вторая мировая война началась 1 сентября 1939 года",
+        "source": "common_knowledge",
+        "type": "temporal"
+      },
+      {
+        "text": "Вторая мировая война закончилась 2 сентября 1945 года",
+        "source": "common_knowledge",
+        "type": "temporal"
+      }
+    ],
+    "expected_tool_calls": [],
+    "risk_level": "low"
+  }
+]

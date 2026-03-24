@@ -47,6 +47,7 @@ class GuardrailsRuntime:
         self.agent_runtime: Optional[LangGraphAgentRuntime] = None
         self.backend: Optional[GuardrailsBackend] = None
         self.rule_engine = None  # Set in initialize() if dynamic rails enabled
+        self.grounding_pipeline = None  # Set in initialize() if grounding enabled
 
     async def initialize(self):
         """Initialize guardrails runtime with all components."""
@@ -78,6 +79,17 @@ class GuardrailsRuntime:
             except Exception as e:
                 logger.warning("Failed to initialize dynamic rule engine", error=str(e))
                 self.rule_engine = None
+
+        # Initialize grounding pipeline if enabled
+        if settings.grounding_enabled:
+            try:
+                from app.grounding.pipeline import GroundingPipeline
+                self.grounding_pipeline = GroundingPipeline()
+                await self.grounding_pipeline.initialize()
+                logger.info("Grounding pipeline initialized")
+            except Exception as e:
+                logger.warning("Failed to initialize grounding pipeline", error=str(e))
+                self.grounding_pipeline = None
 
         logger.info("Guardrails runtime initialized successfully")
 
@@ -160,6 +172,7 @@ class GuardrailsRuntime:
                     'tool_calls': [],
                     'session_state': session_state,
                     'dynamic_rules_result': None,
+                    'grounding_result': None,
                 }
 
             # Process dynamic rules
@@ -194,6 +207,26 @@ class GuardrailsRuntime:
             assistant_message = result['message']
             tool_calls = self.tool_proxy.get_tool_call_ids(session_id, trace_id)
 
+            # Step 3.5: Grounding pipeline (if enabled)
+            grounding_result = None
+            if self.grounding_pipeline and settings.grounding_enabled:
+                try:
+                    grounding_result = await self.grounding_pipeline.ground(
+                        draft_response=assistant_message,
+                        trace_id=trace_id,
+                    )
+                    assistant_message = grounding_result.grounded_response
+                    logger.info(
+                        "Grounding completed",
+                        trace_id=trace_id,
+                        claims_total=grounding_result.claims_total,
+                        claims_verified=grounding_result.claims_verified,
+                        claims_unverified=grounding_result.claims_unverified,
+                        duration_ms=round(grounding_result.pipeline_duration_ms, 1),
+                    )
+                except Exception as e:
+                    logger.warning("Grounding pipeline failed, using original response", exc_info=e)
+
             # Step 4: Check output
             try:
                 output_result = await self.backend.check_output(assistant_message, context)
@@ -206,6 +239,7 @@ class GuardrailsRuntime:
                         'tool_calls': tool_calls,
                         'session_state': session_state,
                         'dynamic_rules_result': dynamic_rules_result,
+                        'grounding_result': grounding_result,
                     }
             except Exception as e:
                 logger.warning("Output check failed", exc_info=e)
@@ -225,6 +259,7 @@ class GuardrailsRuntime:
                 'tool_calls': tool_calls,
                 'session_state': session_state,
                 'dynamic_rules_result': dynamic_rules_result,
+                'grounding_result': grounding_result,
             }
 
         except Exception as e:
@@ -235,6 +270,7 @@ class GuardrailsRuntime:
                 'tool_calls': [],
                 'session_state': session_state,
                 'dynamic_rules_result': None,
+                'grounding_result': None,
             }
 
     async def generate_passthrough(
@@ -274,6 +310,7 @@ class GuardrailsRuntime:
                 'tool_calls': tool_calls,
                 'session_state': session_state,
                 'dynamic_rules_result': None,
+                'grounding_result': None,
             }
 
         except Exception as e:
@@ -284,4 +321,5 @@ class GuardrailsRuntime:
                 'tool_calls': [],
                 'session_state': session_state,
                 'dynamic_rules_result': None,
+                'grounding_result': None,
             }
